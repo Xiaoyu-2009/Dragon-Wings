@@ -65,24 +65,38 @@ public class WingRenderer {
             if (Config.isEnderDragonWingsEnabled()) {
                 renderWings(player, event.getPoseStack(), event.getMultiBufferSource(), event.getPackedLight(), WingType.ENDER_DRAGON);
             }
+            // 龙翅膀
+            else if (Config.isDragonWingsEnabled()) {
+                renderWings(player, event.getPoseStack(), event.getMultiBufferSource(), event.getPackedLight(), WingType.DRAGON);
+            }
         }
     }
     
     public static void renderWings(Player player, PoseStack poseStack, MultiBufferSource buffer, int packedLight, WingType wingType) {
         WingRenderer renderer = getInstance();
+
+        int scale = 100;
+        switch (wingType) {
+            case ENDER_DRAGON:
+                scale = Config.getEnderDragonWingsScale();
+                break;
+            case DRAGON:
+                scale = Config.getDragonWingsScale();
+                break;
+        }
         
-        double scale = Config.getEnderDragonWingsScale() / 100D;
+        double scaleValue = scale / 100D;
         
         poseStack.pushPose();
-        poseStack.scale((float) -scale, (float) -scale, (float) scale);
+        poseStack.scale((float) -scaleValue, (float) -scaleValue, (float) scaleValue);
 
         poseStack.mulPose(Axis.YP.rotationDegrees(180 + player.yBodyRot));
 
-        poseStack.translate(0, -1.25 / scale, 0);
-        poseStack.translate(0, 0, 0.2 / scale);
+        poseStack.translate(0, -1.25 / scaleValue, 0);
+        poseStack.translate(0, 0, 0.2 / scaleValue);
 
         if (player.isCrouching()) {
-            poseStack.translate(0D, 0.125D / scale, 0D);
+            poseStack.translate(0D, 0.125D / scaleValue, 0D);
         }
 
         ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(DragonWings.MODID, wingType.getTexturePath());
