@@ -7,37 +7,38 @@ import net.neoforged.fml.config.ModConfig;
 public class Config {
     public static ModConfigSpec configSpec;
 
-    public static ModConfigSpec.BooleanValue ENDER_DRAGON_WINGS_ENABLED;
-    public static ModConfigSpec.IntValue ENDER_DRAGON_WINGS_SCALE;
-    public static ModConfigSpec.BooleanValue DRAGON_WINGS_ENABLED;
-    public static ModConfigSpec.IntValue DRAGON_WINGS_SCALE;
+    private static final WingType[] WING_TYPES = WingType.values();
+
+    public static ModConfigSpec.BooleanValue[] WINGS_ENABLED;
+    public static ModConfigSpec.IntValue[] WINGS_SCALE;
+    public static ModConfigSpec.BooleanValue[] WINGS_FLYING_EXPAND;
     
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
-        
-        builder.push("Ender Dragon Wings Settings");
-        
-        ENDER_DRAGON_WINGS_ENABLED = builder
-                .comment("Enable or disable the ender dragon wings rendering")
-                .define("ender_dragon_wings_enabled", true);
-                
-        ENDER_DRAGON_WINGS_SCALE = builder
-                .comment("Scale of the ender dragon wings")
-                .defineInRange("ender_dragon_wings_scale", 100, 60, Integer.MAX_VALUE);
 
-        builder.pop();
-
-        builder.push("Dragon Wings Settings");
+        WINGS_ENABLED = new ModConfigSpec.BooleanValue[WING_TYPES.length];
+        WINGS_SCALE = new ModConfigSpec.IntValue[WING_TYPES.length];
+        WINGS_FLYING_EXPAND = new ModConfigSpec.BooleanValue[WING_TYPES.length];
         
-        DRAGON_WINGS_ENABLED = builder
-                .comment("Enable or disable the dragon wings rendering")
-                .define("dragon_wings_enabled", false);
-                
-        DRAGON_WINGS_SCALE = builder
-                .comment("Scale of the dragon wings")
-                .defineInRange("dragon_wings_scale",  100, 60, Integer.MAX_VALUE);
+        for (int i = 0; i < WING_TYPES.length; i++) {
+            WingType wingType = WING_TYPES[i];
+            builder.push(wingType.getDisplayName() + " Settings");
 
-        builder.pop();
+            WINGS_ENABLED[i] = builder
+                .comment("Enable or disable the " + wingType.getDisplayName().toLowerCase() + " rendering")
+                .define(wingType.getEnabledConfigKey(), i == 0);
+
+            WINGS_SCALE[i] = builder
+                .comment("Scale of the " + wingType.getDisplayName().toLowerCase())
+                .defineInRange(wingType.getScaleConfigKey(), 100, 60, Integer.MAX_VALUE);
+
+            WINGS_FLYING_EXPAND[i] = builder
+                .comment("Whether to expand wings when flying for " + wingType.getDisplayName().toLowerCase())
+                .define(wingType.getFlyingExpandConfigKey(), true);
+            
+            builder.pop();
+        }
+        
         configSpec = builder.build();
     }
     
@@ -45,19 +46,27 @@ public class Config {
         modContainer.registerConfig(ModConfig.Type.CLIENT, configSpec);
     }
 
-    public static boolean isEnderDragonWingsEnabled() {
-        return ENDER_DRAGON_WINGS_ENABLED.get();
+    public static boolean isWingsEnabled(WingType wingType) {
+        int index = wingType.ordinal();
+        if (index >= 0 && index < WINGS_ENABLED.length) {
+            return WINGS_ENABLED[index].get();
+        }
+        return false;
     }
     
-    public static int getEnderDragonWingsScale() {
-        return ENDER_DRAGON_WINGS_SCALE.get();
+    public static int getWingsScale(WingType wingType) {
+        int index = wingType.ordinal();
+        if (index >= 0 && index < WINGS_SCALE.length) {
+            return WINGS_SCALE[index].get();
+        }
+        return 100;
     }
 
-    public static boolean isDragonWingsEnabled() {
-        return DRAGON_WINGS_ENABLED.get();
-    }
-    
-    public static int getDragonWingsScale() {
-        return DRAGON_WINGS_SCALE.get();
+    public static boolean isWingsFlyingExpand(WingType wingType) {
+        int index = wingType.ordinal();
+        if (index >= 0 && index < WINGS_FLYING_EXPAND.length) {
+            return WINGS_FLYING_EXPAND[index].get();
+        }
+        return true;
     }
 }

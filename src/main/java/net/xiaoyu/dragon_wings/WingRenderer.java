@@ -2,7 +2,6 @@ package net.xiaoyu.dragon_wings;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
@@ -16,7 +15,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderPlayerEvent;
 
-@EventBusSubscriber(modid = DragonWings.MODID)
+@EventBusSubscriber(modid = DragonWings.MOD_ID)
 public class WingRenderer {
     private static WingRenderer instance;
     
@@ -61,13 +60,11 @@ public class WingRenderer {
         Minecraft mc = Minecraft.getInstance();
 
         if (player.equals(mc.player) && !player.isInvisible()) {
-            // 末影龙翅膀
-            if (Config.isEnderDragonWingsEnabled()) {
-                renderWings(player, event.getPoseStack(), event.getMultiBufferSource(), event.getPackedLight(), WingType.ENDER_DRAGON);
-            }
-            // 龙翅膀
-            else if (Config.isDragonWingsEnabled()) {
-                renderWings(player, event.getPoseStack(), event.getMultiBufferSource(), event.getPackedLight(), WingType.DRAGON);
+            for (WingType wingType : WingType.values()) {
+                if (WingsRenderUtils.shouldRenderWings(player, Config.isWingsEnabled(wingType), Config.isWingsFlyingExpand(wingType))) {
+                    renderWings(player, event.getPoseStack(), event.getMultiBufferSource(), event.getPackedLight(), wingType);
+                    break;
+                }
             }
         }
     }
@@ -75,44 +72,24 @@ public class WingRenderer {
     public static void renderWings(Player player, PoseStack poseStack, MultiBufferSource buffer, int packedLight, WingType wingType) {
         WingRenderer renderer = getInstance();
 
-        int scale = 100;
-        switch (wingType) {
-            case ENDER_DRAGON:
-                scale = Config.getEnderDragonWingsScale();
-                break;
-            case DRAGON:
-                scale = Config.getDragonWingsScale();
-                break;
-        }
-        
-        double scaleValue = scale / 100D;
-        
-        poseStack.pushPose();
-        poseStack.scale((float) -scaleValue, (float) -scaleValue, (float) scaleValue);
+        int scale = Config.getWingsScale(wingType);
 
-        poseStack.mulPose(Axis.YP.rotationDegrees(180 + player.yBodyRot));
+        WingsRenderUtils.applyWingTransforms(poseStack, player, scale);
 
-        poseStack.translate(0, -1.25 / scaleValue, 0);
-        poseStack.translate(0, 0, 0.2 / scaleValue);
-
-        if (player.isCrouching()) {
-            poseStack.translate(0D, 0.125D / scaleValue, 0D);
-        }
-
-        ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(DragonWings.MODID, wingType.getTexturePath());
+        ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(DragonWings.MOD_ID, wingType.getTexturePath());
         VertexConsumer vertexconsumer = buffer.getBuffer(RenderType.entityCutoutNoCull(texture));
         
+        renderer.updateWingAnimation();
+        
         for (int j = 0; j < 2; ++j) {
-            renderer.updateWingAnimation();
-            
             renderer.wing.render(poseStack, vertexconsumer, packedLight, OverlayTexture.NO_OVERLAY);
 
             if (j == 0) {
                 poseStack.scale(-1.0F, 1.0F, 1.0F);
             }
         }
-        
-        poseStack.popPose();
+
+        WingsRenderUtils.restoreWingTransforms(poseStack);
     }
     
     private void updateWingAnimation() {
