@@ -40,7 +40,7 @@ public class Config {
 
             SHOW_OTHER_PLAYERS_WINGS[i] = builder
                 .comment("Whether to show " + wingType.getDisplayName().toLowerCase() + " on other players")
-                .define(wingType.getDisplayName().toLowerCase().replace(" ", "_") + "_show_other_players_wings", true);
+                .define(wingType.getDisplayName().toLowerCase().replace(" ", "_") + "_show_other_players_wings", false);
             
             builder.pop();
         }
