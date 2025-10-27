@@ -1,7 +1,7 @@
 package net.xiaoyu.dragon_wings;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
+import com.mojang.math.Vector3f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 
@@ -21,7 +21,7 @@ public class WingsRenderUtils {
         poseStack.pushPose();
         poseStack.scale((float) -scaleValue, (float) -scaleValue, (float) scaleValue);
 
-        poseStack.mulPose(Axis.YP.rotationDegrees(180 + player.yBodyRot));
+        poseStack.mulPose(Vector3f.YP.rotationDegrees(180 + player.yBodyRot));
 
         poseStack.translate(0, -1.25 / scaleValue, 0);
         poseStack.translate(0, 0, 0.2 / scaleValue);
