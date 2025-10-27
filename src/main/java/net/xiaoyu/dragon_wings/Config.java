@@ -30,11 +30,11 @@ public class Config {
 
             WINGS_SCALE[i] = builder
                 .comment("Scale of the " + wingType.getDisplayName().toLowerCase())
-                .defineInRange(wingType.getScaleConfigKey(), 100, 60, Integer.MAX_VALUE);
+                .defineInRange(wingType.getScaleConfigKey(), i == 0 ? 120 : 120, 60, Integer.MAX_VALUE);
 
             WINGS_FLYING_EXPAND[i] = builder
                 .comment("Whether to expand wings when flying for " + wingType.getDisplayName().toLowerCase())
-                .define(wingType.getFlyingExpandConfigKey(), true);
+                .define(wingType.getFlyingExpandConfigKey(), false);
             
             builder.pop();
         }
@@ -51,7 +51,7 @@ public class Config {
         if (index >= 0 && index < WINGS_ENABLED.length) {
             return WINGS_ENABLED[index].get();
         }
-        return false;
+        return true;
     }
     
     public static int getWingsScale(WingType wingType) {
