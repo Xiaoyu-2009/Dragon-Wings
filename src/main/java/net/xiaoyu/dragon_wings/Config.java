@@ -12,6 +12,7 @@ public class Config {
     public static ModConfigSpec.BooleanValue[] WINGS_ENABLED;
     public static ModConfigSpec.IntValue[] WINGS_SCALE;
     public static ModConfigSpec.BooleanValue[] WINGS_FLYING_EXPAND;
+    public static ModConfigSpec.BooleanValue[] SHOW_OTHER_PLAYERS_WINGS;
     
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -19,6 +20,7 @@ public class Config {
         WINGS_ENABLED = new ModConfigSpec.BooleanValue[WING_TYPES.length];
         WINGS_SCALE = new ModConfigSpec.IntValue[WING_TYPES.length];
         WINGS_FLYING_EXPAND = new ModConfigSpec.BooleanValue[WING_TYPES.length];
+        SHOW_OTHER_PLAYERS_WINGS = new ModConfigSpec.BooleanValue[WING_TYPES.length];
         
         for (int i = 0; i < WING_TYPES.length; i++) {
             WingType wingType = WING_TYPES[i];
@@ -35,6 +37,10 @@ public class Config {
             WINGS_FLYING_EXPAND[i] = builder
                 .comment("Whether to expand wings when flying for " + wingType.getDisplayName().toLowerCase())
                 .define(wingType.getFlyingExpandConfigKey(), false);
+
+            SHOW_OTHER_PLAYERS_WINGS[i] = builder
+                .comment("Whether to show " + wingType.getDisplayName().toLowerCase() + " on other players")
+                .define(wingType.getDisplayName().toLowerCase().replace(" ", "_") + "_show_other_players_wings", true);
             
             builder.pop();
         }
@@ -66,6 +72,14 @@ public class Config {
         int index = wingType.ordinal();
         if (index >= 0 && index < WINGS_FLYING_EXPAND.length) {
             return WINGS_FLYING_EXPAND[index].get();
+        }
+        return true;
+    }
+
+    public static boolean showOtherPlayersWings(WingType wingType) {
+        int index = wingType.ordinal();
+        if (index >= 0 && index < SHOW_OTHER_PLAYERS_WINGS.length) {
+            return SHOW_OTHER_PLAYERS_WINGS[index].get();
         }
         return true;
     }

@@ -2,6 +2,7 @@ package net.xiaoyu.dragon_wings;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 
 public class WingsRenderUtils {
@@ -32,5 +33,34 @@ public class WingsRenderUtils {
 
     public static void restoreWingTransforms(PoseStack poseStack) {
         poseStack.popPose();
+    }
+
+    public static boolean isLocalPlayer(Player player) {
+        Minecraft mc = Minecraft.getInstance();
+        return player.equals(mc.player);
+    }
+
+    public static WingType getWingTypeToRender(Player player) {
+        if (player.isInvisible()) {
+            return null;
+        }
+        
+        boolean isLocalPlayer = isLocalPlayer(player);
+        
+        for (WingType wingType : WingType.values()) {
+            boolean shouldRender;
+            if (isLocalPlayer) {
+                shouldRender = 
+                shouldRenderWings(player, Config.isWingsEnabled(wingType), Config.isWingsFlyingExpand(wingType));
+            } else {
+                shouldRender = Config.showOtherPlayersWings(wingType) && 
+                shouldRenderWings(player, Config.isWingsEnabled(wingType), Config.isWingsFlyingExpand(wingType));
+            }
+            
+            if (shouldRender) {
+                return wingType;
+            }
+        }
+        return null;
     }
 }

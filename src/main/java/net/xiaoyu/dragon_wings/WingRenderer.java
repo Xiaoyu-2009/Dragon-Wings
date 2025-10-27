@@ -2,7 +2,6 @@ package net.xiaoyu.dragon_wings;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
@@ -57,14 +56,10 @@ public class WingRenderer {
     @SubscribeEvent
     public static void onRenderPlayerPost(RenderPlayerEvent.Post event) {
         Player player = event.getEntity();
+        WingType wingType = WingsRenderUtils.getWingTypeToRender(player);
 
-        if (!player.isInvisible()) {
-            for (WingType wingType : WingType.values()) {
-                if (WingsRenderUtils.shouldRenderWings(player, Config.isWingsEnabled(wingType), Config.isWingsFlyingExpand(wingType))) {
-                    renderWings(player, event.getPoseStack(), event.getMultiBufferSource(), event.getPackedLight(), wingType);
-                    break;
-                }
-            }
+        if (wingType != null) {
+            renderWings(player, event.getPoseStack(), event.getMultiBufferSource(), event.getPackedLight(), wingType);
         }
     }
     
