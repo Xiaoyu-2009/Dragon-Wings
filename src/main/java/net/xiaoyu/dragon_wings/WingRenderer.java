@@ -57,9 +57,8 @@ public class WingRenderer {
     @SubscribeEvent
     public static void onRenderPlayerPost(RenderPlayerEvent.Post event) {
         Player player = event.getEntity();
-        Minecraft mc = Minecraft.getInstance();
 
-        if (player.equals(mc.player) && !player.isInvisible()) {
+        if (!player.isInvisible()) {
             for (WingType wingType : WingType.values()) {
                 if (WingsRenderUtils.shouldRenderWings(player, Config.isWingsEnabled(wingType), Config.isWingsFlyingExpand(wingType))) {
                     renderWings(player, event.getPoseStack(), event.getMultiBufferSource(), event.getPackedLight(), wingType);
