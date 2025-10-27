@@ -30,7 +30,7 @@ public class Config {
 
             WINGS_SCALE[i] = builder
                 .comment("Scale of the " + wingType.getDisplayName().toLowerCase())
-                .defineInRange(wingType.getScaleConfigKey(), i == 0 ? 120 : 120, 60, Integer.MAX_VALUE);
+                .defineInRange(wingType.getScaleConfigKey(), 100, 1, Integer.MAX_VALUE);
 
             WINGS_FLYING_EXPAND[i] = builder
                 .comment("Whether to expand wings when flying for " + wingType.getDisplayName().toLowerCase())
