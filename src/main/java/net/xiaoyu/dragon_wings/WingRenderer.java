@@ -2,11 +2,12 @@ package net.xiaoyu.dragon_wings;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
@@ -54,16 +55,18 @@ public class WingRenderer {
     }
     
     @SubscribeEvent
-    public static void onRenderPlayerPost(RenderPlayerEvent.Post event) {
-        Player player = event.getEntity();
+    public static void onRenderPlayerPost(RenderPlayerEvent.Post<?> event) {
+        int entityId = event.getRenderState().id;
+        Player player = (Player) Minecraft.getInstance().level.getEntity(entityId);
+        
         WingType wingType = WingsRenderUtils.getWingTypeToRender(player);
 
         if (wingType != null) {
-            renderWings(player, event.getPoseStack(), event.getMultiBufferSource(), event.getPackedLight(), wingType);
+            renderWings(player, event.getPoseStack(), event.getSubmitNodeCollector(), event.getRenderState().lightCoords, wingType);
         }
     }
     
-    public static void renderWings(Player player, PoseStack poseStack, MultiBufferSource buffer, int packedLight, WingType wingType) {
+    public static void renderWings(Player player, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int packedLight, WingType wingType) {
         WingRenderer renderer = getInstance();
 
         int scale = Config.getWingsScale(wingType);
@@ -71,12 +74,18 @@ public class WingRenderer {
         WingsRenderUtils.applyWingTransforms(poseStack, player, scale);
 
         ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(DragonWings.MOD_ID, wingType.getTexturePath());
-        VertexConsumer vertexconsumer = buffer.getBuffer(RenderType.entityCutoutNoCull(texture));
-        
+
         renderer.updateWingAnimation();
-        
+
         for (int j = 0; j < 2; ++j) {
-            renderer.wing.render(poseStack, vertexconsumer, packedLight, OverlayTexture.NO_OVERLAY);
+            submitNodeCollector.submitModelPart(
+                renderer.wing, 
+                poseStack, 
+                RenderType.entityCutoutNoCull(texture), 
+                packedLight, 
+                OverlayTexture.NO_OVERLAY, 
+                null
+            );
 
             if (j == 0) {
                 poseStack.scale(-1.0F, 1.0F, 1.0F);
