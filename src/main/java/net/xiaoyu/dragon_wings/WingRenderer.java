@@ -27,19 +27,19 @@ public class WingRenderer {
         PartDefinition partdefinition = meshdefinition.getRoot();
 
         PartDefinition wingPart = partdefinition.addOrReplaceChild("wing", CubeListBuilder.create()
-                        .texOffs(0, 0)
-                        .addBox(-10.0F, -1.0F, -1.0F, 10.0F, 2.0F, 2.0F)
-                        .texOffs(-10, 8)
-                        .addBox(-10.0F, 0.0F, 0.5F, 10.0F, 0.0F, 10.0F),
-                PartPose.offset(-2.0F, 0.0F, 0.0F)
+                .texOffs(0, 0)
+                .addBox(-10.0F, -1.0F, -1.0F, 10.0F, 2.0F, 2.0F)
+                .texOffs(-10, 8)
+                .addBox(-10.0F, 0.0F, 0.5F, 10.0F, 0.0F, 10.0F),
+            PartPose.offset(-2.0F, 0.0F, 0.0F)
         );
 
         wingPart.addOrReplaceChild("wingtip", CubeListBuilder.create()
-                        .texOffs(0, 5)
-                        .addBox(-10.0F, -0.5F, -0.5F, 10.0F, 1.0F, 1.0F)
-                        .texOffs(-10, 18)
-                        .addBox(-10.0F, 0.0F, 0.5F, 10.0F, 0.0F, 10.0F),
-                PartPose.offset(-10.0F, 0.0F, 0.0F)
+                .texOffs(0, 5)
+                .addBox(-10.0F, -0.5F, -0.5F, 10.0F, 1.0F, 1.0F)
+                .texOffs(-10, 18)
+                .addBox(-10.0F, 0.0F, 0.5F, 10.0F, 0.0F, 10.0F),
+            PartPose.offset(-10.0F, 0.0F, 0.0F)
         );
 
         ModelPart root = partdefinition.bake(30, 30);
