@@ -1,26 +1,26 @@
 package net.xiaoyu.dragon_wings;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
-import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.config.ModConfig;
+import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.config.ModConfig;
 
 public class Config {
-    public static ModConfigSpec configSpec;
+    public static ForgeConfigSpec configSpec;
 
     private static final WingType[] WING_TYPES = WingType.values();
 
-    public static ModConfigSpec.BooleanValue[] WINGS_ENABLED;
-    public static ModConfigSpec.IntValue[] WINGS_SCALE;
-    public static ModConfigSpec.BooleanValue[] WINGS_FLYING_EXPAND;
-    public static ModConfigSpec.BooleanValue[] SHOW_OTHER_PLAYERS_WINGS;
+    public static ForgeConfigSpec.BooleanValue[] WINGS_ENABLED;
+    public static ForgeConfigSpec.IntValue[] WINGS_SCALE;
+    public static ForgeConfigSpec.BooleanValue[] WINGS_FLYING_EXPAND;
+    public static ForgeConfigSpec.BooleanValue[] SHOW_OTHER_PLAYERS_WINGS;
     
     static {
-        ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
+        ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
-        WINGS_ENABLED = new ModConfigSpec.BooleanValue[WING_TYPES.length];
-        WINGS_SCALE = new ModConfigSpec.IntValue[WING_TYPES.length];
-        WINGS_FLYING_EXPAND = new ModConfigSpec.BooleanValue[WING_TYPES.length];
-        SHOW_OTHER_PLAYERS_WINGS = new ModConfigSpec.BooleanValue[WING_TYPES.length];
+        WINGS_ENABLED = new ForgeConfigSpec.BooleanValue[WING_TYPES.length];
+        WINGS_SCALE = new ForgeConfigSpec.IntValue[WING_TYPES.length];
+        WINGS_FLYING_EXPAND = new ForgeConfigSpec.BooleanValue[WING_TYPES.length];
+        SHOW_OTHER_PLAYERS_WINGS = new ForgeConfigSpec.BooleanValue[WING_TYPES.length];
         
         for (int i = 0; i < WING_TYPES.length; i++) {
             WingType wingType = WING_TYPES[i];
@@ -48,8 +48,8 @@ public class Config {
         configSpec = builder.build();
     }
     
-    public static void registerConfig(ModContainer modContainer) {
-        modContainer.registerConfig(ModConfig.Type.CLIENT, configSpec);
+    public static void registerConfig() {
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, configSpec);
     }
 
     public static boolean isWingsEnabled(WingType wingType) {

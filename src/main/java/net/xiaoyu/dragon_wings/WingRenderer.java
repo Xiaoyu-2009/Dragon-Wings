@@ -10,11 +10,11 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RenderPlayerEvent;
+import net.minecraftforge.client.event.RenderPlayerEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
-@EventBusSubscriber(modid = DragonWings.MOD_ID)
+@Mod.EventBusSubscriber(modid = DragonWings.MOD_ID)
 public class WingRenderer {
     private static WingRenderer instance;
     
@@ -70,7 +70,7 @@ public class WingRenderer {
 
         WingsRenderUtils.applyWingTransforms(poseStack, player, scale);
 
-        ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(DragonWings.MOD_ID, wingType.getTexturePath());
+        ResourceLocation texture = new ResourceLocation(DragonWings.MOD_ID, wingType.getTexturePath());
         VertexConsumer vertexconsumer = buffer.getBuffer(RenderType.entityCutoutNoCull(texture));
         
         renderer.updateWingAnimation();
