@@ -1,49 +1,44 @@
 package net.xiaoyu.dragon_wings;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.model.geom.PartPose;
-import net.minecraft.client.model.geom.builders.*;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Player;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RenderPlayerEvent;
+import net.minecraft.client.model.ModelBase;
+import net.minecraft.client.model.ModelRenderer;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.entity.RenderPlayer;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.client.event.RenderPlayerEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
-@EventBusSubscriber(modid = DragonWings.MOD_ID)
-public class WingRenderer {
+@Mod.EventBusSubscriber(modid = DragonWings.MOD_ID)
+public class WingRenderer extends ModelBase {
     private static WingRenderer instance;
     
-    private final ModelPart wing;
-    private final ModelPart wingTip;
+    private final ModelRenderer wing;
+    private final ModelRenderer wingTip;
     
     private WingRenderer() {
-        MeshDefinition meshdefinition = new MeshDefinition();
-        PartDefinition partdefinition = meshdefinition.getRoot();
+        this.textureWidth = 30;
+        this.textureHeight = 30;
 
-        PartDefinition wingPart = partdefinition.addOrReplaceChild("wing", CubeListBuilder.create()
-                .texOffs(0, 0)
-                .addBox(-10.0F, -1.0F, -1.0F, 10.0F, 2.0F, 2.0F)
-                .texOffs(-10, 8)
-                .addBox(-10.0F, 0.0F, 0.5F, 10.0F, 0.0F, 10.0F),
-            PartPose.offset(-2.0F, 0.0F, 0.0F)
-        );
+        this.wing = new ModelRenderer(this, 0, 0);
+        this.wing.addBox(-10.0F, -1.0F, -1.0F, 10, 2, 2);
+        this.wing.setRotationPoint(-2.0F, 0.0F, 0.0F);
 
-        wingPart.addOrReplaceChild("wingtip", CubeListBuilder.create()
-                .texOffs(0, 5)
-                .addBox(-10.0F, -0.5F, -0.5F, 10.0F, 1.0F, 1.0F)
-                .texOffs(-10, 18)
-                .addBox(-10.0F, 0.0F, 0.5F, 10.0F, 0.0F, 10.0F),
-            PartPose.offset(-10.0F, 0.0F, 0.0F)
-        );
-        
-        ModelPart root = partdefinition.bake(30, 30);
-        this.wing = root.getChild("wing");
-        this.wingTip = wing.getChild("wingtip");
+        ModelRenderer wingMembrane = new ModelRenderer(this, -10, 8);
+        wingMembrane.addBox(-10.0F, 0.0F, 0.5F, 10, 0, 10);
+        wingMembrane.setRotationPoint(0.0F, 0.0F, 0.0F);
+        this.wing.addChild(wingMembrane);
+
+        this.wingTip = new ModelRenderer(this, 0, 5);
+        this.wingTip.addBox(-10.0F, -0.5F, -0.5F, 10, 1, 1);
+        this.wingTip.setRotationPoint(-10.0F, 0.0F, 0.0F);
+        this.wing.addChild(this.wingTip);
+
+        ModelRenderer wingTipMembrane = new ModelRenderer(this, -10, 18);
+        wingTipMembrane.addBox(-10.0F, 0.0F, 0.5F, 10, 0, 10);
+        wingTipMembrane.setRotationPoint(0.0F, 0.0F, 0.0F);
+        this.wingTip.addChild(wingTipMembrane);
     }
     
     public static WingRenderer getInstance() {
@@ -55,42 +50,46 @@ public class WingRenderer {
     
     @SubscribeEvent
     public static void onRenderPlayerPost(RenderPlayerEvent.Post event) {
-        Player player = event.getEntity();
+        EntityPlayer player = event.getEntityPlayer();
         WingType wingType = WingsRenderUtils.getWingTypeToRender(player);
 
         if (wingType != null) {
-            renderWings(player, event.getPoseStack(), event.getMultiBufferSource(), event.getPackedLight(), wingType);
+            renderWings(player, event.getRenderer(), event.getX(), event.getY(), event.getZ(), event.getPartialRenderTick(), wingType);
         }
     }
     
-    public static void renderWings(Player player, PoseStack poseStack, MultiBufferSource buffer, int packedLight, WingType wingType) {
-        WingRenderer renderer = getInstance();
+    public static void renderWings(EntityPlayer player, RenderPlayer renderer, double x, double y, double z, float partialTicks, WingType wingType) {
+        WingRenderer model = getInstance();
 
         int scale = Config.getWingsScale(wingType);
 
-        WingsRenderUtils.applyWingTransforms(poseStack, player, scale);
-
-        ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(DragonWings.MOD_ID, wingType.getTexturePath());
-        VertexConsumer vertexconsumer = buffer.getBuffer(RenderType.entityCutoutNoCull(texture));
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(x, y, z);
         
-        renderer.updateWingAnimation();
+        WingsRenderUtils.applyWingTransforms(player, scale);
+
+        ResourceLocation texture = new ResourceLocation(DragonWings.MOD_ID, wingType.getTexturePath());
+        renderer.bindTexture(texture);
+        
+        model.updateWingAnimation();
         
         for (int j = 0; j < 2; ++j) {
-            renderer.wing.render(poseStack, vertexconsumer, packedLight, OverlayTexture.NO_OVERLAY);
+            model.wing.render(0.0625F);
 
             if (j == 0) {
-                poseStack.scale(-1.0F, 1.0F, 1.0F);
+                GlStateManager.scale(-1.0F, 1.0F, 1.0F);
             }
         }
 
-        WingsRenderUtils.restoreWingTransforms(poseStack);
+        WingsRenderUtils.restoreWingTransforms();
+        GlStateManager.popMatrix();
     }
     
     private void updateWingAnimation() {
         float f11 = (System.currentTimeMillis() % 1000) / 1000F * (float) Math.PI * 2.0F;
-        this.wing.xRot = (float) Math.toRadians(-80F) - (float) Math.cos((double)f11) * 0.2F;
-        this.wing.yRot = (float) Math.toRadians(20F) + (float) Math.sin(f11) * 0.4F;
-        this.wing.zRot = (float) Math.toRadians(20F);
-        this.wingTip.zRot = -((float)(Math.sin((double)(f11 + 2.0F)) + 0.5D)) * 0.75F;
+        this.wing.rotateAngleX = (float) Math.toRadians(-80F) - (float) Math.cos((double)f11) * 0.2F;
+        this.wing.rotateAngleY = (float) Math.toRadians(20F) + (float) Math.sin(f11) * 0.4F;
+        this.wing.rotateAngleZ = (float) Math.toRadians(20F);
+        this.wingTip.rotateAngleZ = -((float)(Math.sin((double)(f11 + 2.0F)) + 0.5D)) * 0.75F;
     }
 }

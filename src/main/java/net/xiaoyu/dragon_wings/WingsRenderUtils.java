@@ -1,46 +1,45 @@
 package net.xiaoyu.dragon_wings;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.entity.player.EntityPlayer;
+import org.lwjgl.opengl.GL11;
 
 public class WingsRenderUtils {
 
-    public static boolean shouldRenderWings(Player player, boolean enabled, boolean flyingExpand) {
+    public static boolean shouldRenderWings(EntityPlayer player, boolean enabled, boolean flyingExpand) {
         if (enabled) {
             return true;
         } else {
-            return player.getAbilities().flying && flyingExpand;
+            return player.capabilities.isFlying && flyingExpand;
         }
     }
 
-    public static void applyWingTransforms(PoseStack poseStack, Player player, int scale) {
+    public static void applyWingTransforms(EntityPlayer player, int scale) {
         double scaleValue = scale / 100D;
         
-        poseStack.pushPose();
-        poseStack.scale((float) -scaleValue, (float) -scaleValue, (float) scaleValue);
+        GL11.glPushMatrix();
+        GL11.glScalef((float) -scaleValue, (float) -scaleValue, (float) scaleValue);
 
-        poseStack.mulPose(Axis.YP.rotationDegrees(180 + player.yBodyRot));
+        GL11.glRotatef(180 + player.renderYawOffset, 0, 1, 0);
 
-        poseStack.translate(0, -1.25 / scaleValue, 0);
-        poseStack.translate(0, 0, 0.2 / scaleValue);
+        GL11.glTranslatef(0, -1.25f / (float) scaleValue, 0);
+        GL11.glTranslatef(0, 0, 0.2f / (float) scaleValue);
 
-        if (player.isCrouching()) {
-            poseStack.translate(0D, 0.125D / scaleValue, 0D);
+        if (player.isSneaking()) {
+            GL11.glTranslatef(0, 0.125f / (float) scaleValue, 0);
         }
     }
 
-    public static void restoreWingTransforms(PoseStack poseStack) {
-        poseStack.popPose();
+    public static void restoreWingTransforms() {
+        GL11.glPopMatrix();
     }
 
-    public static boolean isLocalPlayer(Player player) {
-        Minecraft mc = Minecraft.getInstance();
+    public static boolean isLocalPlayer(EntityPlayer player) {
+        Minecraft mc = Minecraft.getMinecraft();
         return player.equals(mc.player);
     }
 
-    public static WingType getWingTypeToRender(Player player) {
+    public static WingType getWingTypeToRender(EntityPlayer player) {
         if (player.isInvisible()) {
             return null;
         }

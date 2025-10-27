@@ -1,86 +1,106 @@
 package net.xiaoyu.dragon_wings;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
-import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.config.ModConfig;
+import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.fml.client.event.ConfigChangedEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+import java.io.File;
+
+@Mod.EventBusSubscriber(modid = DragonWings.MOD_ID)
 public class Config {
-    public static ModConfigSpec configSpec;
+    private static Configuration config;
 
-    private static final WingType[] WING_TYPES = WingType.values();
+    public static boolean[] wingsEnabled = new boolean[WingType.values().length];
+    public static int[] wingsScale = new int[WingType.values().length];
+    public static boolean[] wingsFlyingExpand = new boolean[WingType.values().length];
+    public static boolean[] showOtherPlayersWings = new boolean[WingType.values().length];
 
-    public static ModConfigSpec.BooleanValue[] WINGS_ENABLED;
-    public static ModConfigSpec.IntValue[] WINGS_SCALE;
-    public static ModConfigSpec.BooleanValue[] WINGS_FLYING_EXPAND;
-    public static ModConfigSpec.BooleanValue[] SHOW_OTHER_PLAYERS_WINGS;
-    
-    static {
-        ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
-
-        WINGS_ENABLED = new ModConfigSpec.BooleanValue[WING_TYPES.length];
-        WINGS_SCALE = new ModConfigSpec.IntValue[WING_TYPES.length];
-        WINGS_FLYING_EXPAND = new ModConfigSpec.BooleanValue[WING_TYPES.length];
-        SHOW_OTHER_PLAYERS_WINGS = new ModConfigSpec.BooleanValue[WING_TYPES.length];
-        
-        for (int i = 0; i < WING_TYPES.length; i++) {
-            WingType wingType = WING_TYPES[i];
-            builder.push(wingType.getDisplayName() + " Settings");
-
-            WINGS_ENABLED[i] = builder
-                .comment("Enable or disable the " + wingType.getDisplayName().toLowerCase() + " rendering")
-                .define(wingType.getEnabledConfigKey(), i == 0);
-
-            WINGS_SCALE[i] = builder
-                .comment("Scale of the " + wingType.getDisplayName().toLowerCase())
-                .defineInRange(wingType.getScaleConfigKey(), 100, 1, Integer.MAX_VALUE);
-
-            WINGS_FLYING_EXPAND[i] = builder
-                .comment("Whether to expand wings when flying for " + wingType.getDisplayName().toLowerCase())
-                .define(wingType.getFlyingExpandConfigKey(), false);
-
-            SHOW_OTHER_PLAYERS_WINGS[i] = builder
-                .comment("Whether to show " + wingType.getDisplayName().toLowerCase() + " on other players")
-                .define(wingType.getDisplayName().toLowerCase().replace(" ", "_") + "_show_other_players_wings", false);
-            
-            builder.pop();
-        }
-        
-        configSpec = builder.build();
+    public static void init(File configFile) {
+        config = new Configuration(configFile);
+        loadConfig();
     }
-    
-    public static void registerConfig(ModContainer modContainer) {
-        modContainer.registerConfig(ModConfig.Type.CLIENT, configSpec);
+
+    private static void loadConfig() {
+        WingType[] wingTypes = {WingType.ENDER_DRAGON, WingType.DRAGON};
+        
+        for (int i = 0; i < wingTypes.length; i++) {
+            WingType wingType = wingTypes[i];
+            String categoryName = wingType.getDisplayName() + " Settings";
+            
+            wingsEnabled[wingType.ordinal()] = config.getBoolean(
+                wingType.getEnabledConfigKey(), 
+                categoryName, 
+                i == 0, 
+                "Enable or disable the " + wingType.getDisplayName().toLowerCase() + " rendering"
+            );
+            
+            wingsScale[wingType.ordinal()] = config.getInt(
+                wingType.getScaleConfigKey(), 
+                categoryName, 
+                100, 
+                1, 
+                Integer.MAX_VALUE, 
+                "Scale of the " + wingType.getDisplayName().toLowerCase()
+            );
+            
+            wingsFlyingExpand[wingType.ordinal()] = config.getBoolean(
+                wingType.getFlyingExpandConfigKey(), 
+                categoryName, 
+                false, 
+                "Whether to expand wings when flying for " + wingType.getDisplayName().toLowerCase()
+            );
+            
+            String otherPlayersKey = wingType.getDisplayName().toLowerCase().replace(" ", "_") + "_show_other_players_wings";
+            showOtherPlayersWings[wingType.ordinal()] = config.getBoolean(
+                otherPlayersKey, 
+                categoryName, 
+                false, 
+                "Whether to show " + wingType.getDisplayName().toLowerCase() + " on other players"
+            );
+        }
+
+        if (config.hasChanged()) {
+            config.save();
+        }
     }
 
     public static boolean isWingsEnabled(WingType wingType) {
         int index = wingType.ordinal();
-        if (index >= 0 && index < WINGS_ENABLED.length) {
-            return WINGS_ENABLED[index].get();
+        if (index >= 0 && index < wingsEnabled.length) {
+            return wingsEnabled[index];
         }
         return true;
     }
     
     public static int getWingsScale(WingType wingType) {
         int index = wingType.ordinal();
-        if (index >= 0 && index < WINGS_SCALE.length) {
-            return WINGS_SCALE[index].get();
+        if (index >= 0 && index < wingsScale.length) {
+            return wingsScale[index];
         }
         return 100;
     }
 
     public static boolean isWingsFlyingExpand(WingType wingType) {
         int index = wingType.ordinal();
-        if (index >= 0 && index < WINGS_FLYING_EXPAND.length) {
-            return WINGS_FLYING_EXPAND[index].get();
+        if (index >= 0 && index < wingsFlyingExpand.length) {
+            return wingsFlyingExpand[index];
         }
         return true;
     }
 
     public static boolean showOtherPlayersWings(WingType wingType) {
         int index = wingType.ordinal();
-        if (index >= 0 && index < SHOW_OTHER_PLAYERS_WINGS.length) {
-            return SHOW_OTHER_PLAYERS_WINGS[index].get();
+        if (index >= 0 && index < showOtherPlayersWings.length) {
+            return showOtherPlayersWings[index];
         }
         return true;
+    }
+
+    @SubscribeEvent
+    public static void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
+        if (event.getModID().equals(DragonWings.MOD_ID)) {
+            loadConfig();
+        }
     }
 }
